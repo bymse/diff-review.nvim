@@ -16,17 +16,32 @@ Hints from requirements:
 ### Implementation 
 
 **What should be implemented:**
-- collect changed files from git 
-- parse changes 
-- enrich them with required data 
-- map them to expected model
+1. collect changed files from git 
+2. parse changes 
+3. enrich them with required data 
+4. map them to an expected model
 
-**How changes are collected from git:**
+**How to compare?**
 1. Always include commited changes, staged changes, unstaged changes, untracked files 
 2. If no args provided then compare HEAD with merge-base with default branch 
 3. If branch name is provided then compare HEAD with merge-base with specified branch 
 4. If commit is provided then compare HEAD with specified commit 
 5. If two branches/commits are provided then compare them 
 
-How to parse changes: 
+**How to collect changes:** 
+git diff --raw -z -M -C <from> <to> 
+git diff --cached --raw -z -M -C
+git diff --raw -z -M -C 
+git ls-files --others --exclude-standard -z
+
+**Output format:**
+1. :<old-mode> <new-mode> <old-oid> <new-oid> <status>\0<path>\0 
+2. :<old-mode> <new-mode> <old-oid> <new-oid> R<score> \0<old-path>\0<new-path>\0
+
+### Diff management module interface 
+
+1. Collect changes, accept required args from "how to compare". returns data structure with props: 
+  1.1. old and new path
+  1.2. state enum: modified, added, deleted, file mode changed, copy, rename, type change (symlink related), unmerged, error
+  1.3. opaque identifier to fetch content for old version and new version: blob oid-blob oid, HEAD blob oid-blob oid, blob-oid path, path
 
