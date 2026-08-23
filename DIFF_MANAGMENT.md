@@ -38,10 +38,11 @@ git ls-files --others --exclude-standard -z
 1. :<old-mode> <new-mode> <old-oid> <new-oid> <status>\0<path>\0 
 2. :<old-mode> <new-mode> <old-oid> <new-oid> R<score> \0<old-path>\0<new-path>\0
 
-### Diff management module interface 
+### Module interface 
 
 1. Collect changes, accept required args from "how to compare". returns data structure with props: 
   1.1. old and new path
   1.2. state enum: modified, added, deleted, file mode changed, copy, rename, type change (symlink related), unmerged, error
-  1.3. opaque identifier to fetch content for old version and new version: blob oid-blob oid, HEAD blob oid-blob oid, blob-oid path, path
+  1.3. opaque identifier to fetch content for old version
+2. Get content for old version using identifier from 1.3
 
