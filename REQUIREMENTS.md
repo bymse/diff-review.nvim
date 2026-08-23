@@ -32,7 +32,6 @@ Provide a Neovim workflow for reviewing the complete local result of a branch, i
 
 ## File List Interaction
 
-- Use a native quickfix list as the primary changed-file list and review queue.
 - Each quickfix entry represents one changed file and visibly indicates whether it is viewed or unviewed.
 - Order unviewed files before viewed files while preserving comparison order within each group.
 - Opening an entry hides the quickfix drawer and selects that file for review in the session's current view mode.
