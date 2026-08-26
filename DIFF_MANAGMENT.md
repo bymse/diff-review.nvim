@@ -29,10 +29,11 @@ Hints from requirements:
 5. If two branches/commits are provided then compare them 
 
 **How to collect changes:** 
-git diff --raw -z -M -C <from> <to> 
-git diff --cached --raw -z -M -C
-git diff --raw -z -M -C 
-git ls-files --others --exclude-standard -z
+1. When one argument is provided, compare it with the current tracked working state and collect untracked files separately:
+   - `git diff --raw -z -M -C <from>`
+   - `git ls-files --others --exclude-standard -z`
+2. When two arguments are provided, compare the two Git revisions:
+   - `git diff --raw -z -M -C <from> <to>`
 
 **Output format:**
 1. :<old-mode> <new-mode> <old-oid> <new-oid> <status>\0<path>\0 
@@ -45,4 +46,3 @@ git ls-files --others --exclude-standard -z
   1.2. state enum: modified, added, deleted, file mode changed, copy, rename, type change (symlink related), unmerged, error
   1.3. opaque identifier to fetch content for old version
 2. Get content for old version using identifier from 1.3
-
