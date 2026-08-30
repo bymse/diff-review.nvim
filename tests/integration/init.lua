@@ -1,4 +1,4 @@
 return {
-  "integration.example_test",
+  "integration.git_tests",
   "integration.plugin_test",
 }
