@@ -22,7 +22,10 @@ M.parse_diff_output_should_parse_single_file = function()
   assert(diff.old_mode == '000000', 'expected old_mode to be 000000')
   assert(diff.old_oid == '0000000', 'expected old_oid to be 0000000')
   assert(diff.new_oid == '1da2a87', 'expected new_oid to be 1da2a87')
-  assert(diff.current_path == 'lua/diffreview/diffs/git.lua', 'expected current_path to be lua/diffreview/diffs/git.lua')
+  assert(
+    diff.current_path == 'lua/diffreview/diffs/git.lua',
+    'expected current_path to be lua/diffreview/diffs/git.lua'
+  )
   assert(diff.old_path == nil, 'expected old_path to be nil')
   assert(diff.status == 'A', 'expected status to be A')
 end
@@ -49,7 +52,8 @@ end
 
 M.parse_diff_output_should_parse_multiple_files = function()
   local diffs = parsers.parse_diff_output(
-  ':100644 100644 095d886 095d886 R100\0ARCH.md\0TEMP_ARCH.md\0:100644 100644 381ca90 0000000 M\0justfile\0:100644 100644 e69de29 0000000 M\0lua/diffreview/diffs/git.lua\0')
+    ':100644 100644 095d886 095d886 R100\0ARCH.md\0TEMP_ARCH.md\0:100644 100644 381ca90 0000000 M\0justfile\0:100644 100644 e69de29 0000000 M\0lua/diffreview/diffs/git.lua\0'
+  )
   assert(#diffs == 3, 'expected three diffs')
 
   local first_diff = diffs[1]
@@ -76,7 +80,10 @@ M.parse_diff_output_should_parse_multiple_files = function()
   assert(third_diff.old_mode == '100644', 'expected old_mode to be 100644')
   assert(third_diff.old_oid == 'e69de29', 'expected old_oid to be e69de29')
   assert(third_diff.new_oid == '0000000', 'expected new_oid to be 0000000')
-  assert(third_diff.current_path == 'lua/diffreview/diffs/git.lua', 'expected current_path to be lua/diffreview/diffs/git.lua')
+  assert(
+    third_diff.current_path == 'lua/diffreview/diffs/git.lua',
+    'expected current_path to be lua/diffreview/diffs/git.lua'
+  )
   assert(third_diff.old_path == nil, 'expected old_path to be nil')
   assert(third_diff.status == 'M', 'expected status to be M')
 end
@@ -86,9 +93,7 @@ M.parse_diff_output_should_error_for_truncated_initial_metadata = function()
 end
 
 M.parse_diff_output_should_error_for_truncated_trailing_metadata = function()
-  assert_parse_fails(
-    ':100644 100644 abcdef0 1234567 M\0one.lua\0:000000 100644 0000000 7654321 A'
-  )
+  assert_parse_fails(':100644 100644 abcdef0 1234567 M\0one.lua\0:000000 100644 0000000 7654321 A')
 end
 
 M.parse_diff_output_should_error_for_trailing_garbage = function()

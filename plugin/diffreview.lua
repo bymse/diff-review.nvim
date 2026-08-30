@@ -4,4 +4,4 @@ end
 
 vim.g.loaded_diffreview = true
 
-require("diffreview")
+require('diffreview')

@@ -1,7 +1,5 @@
 local M = {}
 
-function M.load_review()
-  
-end
+function M.load_review() end
 
 return M

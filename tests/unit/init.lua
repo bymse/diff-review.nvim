@@ -1,3 +1,3 @@
 return {
-  "unit.diff_parsers_tests",
+  'unit.diff_parsers_tests',
 }

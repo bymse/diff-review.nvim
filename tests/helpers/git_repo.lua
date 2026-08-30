@@ -34,9 +34,15 @@ end
 ---@return nil
 function TestGitRepo:commit(message)
   run_git(self.cwd, {
-    '-c', 'user.name=Diff Review Tests',
-    '-c', 'user.email=diffreview@example.com',
-    'commit', '--quiet', '--no-gpg-sign', '-m', message,
+    '-c',
+    'user.name=Diff Review Tests',
+    '-c',
+    'user.email=diffreview@example.com',
+    'commit',
+    '--quiet',
+    '--no-gpg-sign',
+    '-m',
+    message,
   }, {
     GIT_AUTHOR_DATE = '2026-08-30T00:00:00Z',
     GIT_COMMITTER_DATE = '2026-08-30T00:00:00Z',
@@ -60,10 +66,12 @@ function M.with_repo(run)
   local cwd = vim.fn.tempname()
   assert(vim.fn.mkdir(cwd, 'p') == 1, 'failed to create temporary Git repository directory')
 
-  local init_result = vim.system({ 'git', 'init', '--quiet', '--object-format=sha1' }, {
-    cwd = cwd,
-    text = true,
-  }):wait()
+  local init_result = vim
+    .system({ 'git', 'init', '--quiet', '--object-format=sha1' }, {
+      cwd = cwd,
+      text = true,
+    })
+    :wait()
 
   if init_result.code ~= 0 then
     vim.fn.delete(cwd, 'rf')

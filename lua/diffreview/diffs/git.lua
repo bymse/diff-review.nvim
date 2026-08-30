@@ -33,7 +33,7 @@ local function run_parsed(cmd, cwd, parse_output, receive_result)
   return {
     wait = function()
       process:wait()
-    end
+    end,
   }
 end
 
@@ -42,8 +42,11 @@ end
 ---@return GitJob
 function GitRepo:rev_parse(expression, receive_result)
   local cmd = {
-    'git', 'rev-parse', '--verify', '--end-of-options',
-    expression .. '^{commit}'
+    'git',
+    'rev-parse',
+    '--verify',
+    '--end-of-options',
+    expression .. '^{commit}',
   }
 
   ---@param result vim.SystemCompleted
@@ -59,7 +62,7 @@ function GitRepo:rev_parse(expression, receive_result)
   return {
     wait = function()
       process:wait()
-    end
+    end,
   }
 end
 

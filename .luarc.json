@@ -1,0 +1,29 @@
+{
+  "runtime": {
+    "version": "LuaJIT"
+  },
+  "workspace": {
+    "checkThirdParty": false,
+    "library": [
+      "${env:VIMRUNTIME}"
+    ]
+  },
+  "diagnostics": {
+    "globals": [
+      "vim"
+    ],
+    "groupSeverity": {
+      "ambiguity": "Error",
+      "await": "Error",
+      "codestyle": "Error",
+      "conventions": "Error",
+      "duplicate": "Error",
+      "global": "Error",
+      "luadoc": "Error",
+      "strict": "Error",
+      "strong": "Error",
+      "type-check": "Error",
+      "unbalanced": "Error"
+    }
+  }
+}

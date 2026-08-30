@@ -1,7 +1,7 @@
 local M = {}
 
 function M.hello()
-  return "Hello World"
+  return 'Hello World'
 end
 
 vim.notify(M.hello())

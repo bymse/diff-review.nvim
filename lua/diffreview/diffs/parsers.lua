@@ -29,7 +29,7 @@ local function parse_diff_meta(raw_meta)
     old_oid = parts[3],
     new_oid = parts[4],
     status = status,
-    similarity_score = similarity_score
+    similarity_score = similarity_score,
   }
 end
 
@@ -79,8 +79,10 @@ local function validate_diff(diff)
     error('unsupported diff status: ' .. diff.status)
   end
 
-  if (diff.status == diff_status.copied or diff.status == diff_status.renamed)
-      and (diff.old_path == nil or diff.old_path == '') then
+  if
+    (diff.status == diff_status.copied or diff.status == diff_status.renamed)
+    and (diff.old_path == nil or diff.old_path == '')
+  then
     error('missing required parsed diff field: old_path')
   end
 end
@@ -112,7 +114,6 @@ function M.parse_diff_output(raw_out)
     if byte ~= 0 then
       goto continue
     end
-
 
     if state == 'meta' then
       current_diff = parse_diff_meta(raw_out:sub(section_start, i - 1))
