@@ -83,16 +83,28 @@ local function collect_tests(category)
   return tests, test_names
 end
 
-local function parse_category()
-  if #arg ~= 1 or not categories[arg[1]] then
-    error("Expected exactly one category: " .. accepted_categories, 0)
+local function parse_arguments()
+  if #arg < 1 or #arg > 2 or not categories[arg[1]] then
+    error("Expected a category and optional exact test name. Categories: " .. accepted_categories, 0)
   end
 
-  return arg[1]
+  local test_name = arg[2]
+  if test_name == "" then
+    test_name = nil
+  end
+
+  return arg[1], test_name
 end
 
-local category = parse_category()
+local category, requested_test_name = parse_arguments()
 local tests, test_names = collect_tests(category)
+if requested_test_name then
+  if not tests[requested_test_name] then
+    configuration_error(string.format("test %q was not found in category %q", requested_test_name, category))
+  end
+
+  test_names = { requested_test_name }
+end
 local failures = {}
 
 for _, test_name in ipairs(test_names) do

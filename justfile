@@ -9,7 +9,7 @@ bootstrap:
     chmod +x .artifacts/nvim-linux-x86_64.appimage
 
 [private]
-run-test category:
+run-test category test_name="":
     #!/usr/bin/env sh
     set -eu
     repo_root=$(pwd -P)
@@ -45,12 +45,12 @@ run-test category:
       GIT_CONFIG_GLOBAL="$test_root/gitconfig-global" \
       GIT_CONFIG_SYSTEM="$test_root/gitconfig-system" \
       APPIMAGE_EXTRACT_AND_RUN=1 \
-      "$appimage" --headless --clean --noplugin -n -i NONE -u tests/minimal_init.lua -l tests/run.lua {{ category }}
+      "$appimage" --headless --clean --noplugin -n -i NONE -u tests/minimal_init.lua -l tests/run.lua {{ category }} "{{ test_name }}"
 
-test-unit: (run-test "unit")
+test-unit test_name="": (run-test "unit" test_name)
 
-test-integration: (run-test "integration")
+test-integration test_name="": (run-test "integration" test_name)
 
-test-functional: (run-test "functional")
+test-functional test_name="": (run-test "functional" test_name)
 
 test: test-unit test-integration test-functional
