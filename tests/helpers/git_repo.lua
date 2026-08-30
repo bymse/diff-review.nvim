@@ -43,6 +43,11 @@ function TestGitRepo:commit(message)
   })
 end
 
+---@return string
+function TestGitRepo:current_sha()
+  return run_git(self.cwd, { 'rev-parse', 'HEAD' })
+end
+
 ---@param name string
 ---@return nil
 function TestGitRepo:branch(name)
