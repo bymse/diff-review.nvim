@@ -3,18 +3,8 @@ local diff_status = require('diffreview.diffs.status')
 local M = {}
 local colon_byte = string.byte(':')
 
----@class ParsedDiff
----@field old_oid string
----@field new_oid string
----@field old_mode string
----@field new_mode string
----@field status string
----@field similarity_score string|nil
----@field current_path string
----@field old_path string|nil
-
 ---@param raw_meta string
----@return ParsedDiff
+---@return GitDiff
 local function parse_diff_meta(raw_meta)
   local parts = {}
   for word in raw_meta:gmatch('%S+') do
@@ -41,7 +31,7 @@ local function parse_diff_meta(raw_meta)
   }
 end
 
----@param diff ParsedDiff
+---@param diff GitDiff
 local function validate_diff(diff)
   if diff.old_oid == nil then
     error('missing required parsed diff field: old_oid')
@@ -93,7 +83,7 @@ local function validate_diff(diff)
   end
 end
 
----@return ParsedDiff[]
+---@return GitDiff[]
 ---@param raw_out string
 function M.parse_diff_output(raw_out)
   if raw_out == '' then
@@ -112,7 +102,7 @@ function M.parse_diff_output(raw_out)
   local state = 'meta'
   local diffs = {}
 
-  ---@type ParsedDiff|nil
+  ---@type GitDiff|nil
   local current_diff = nil
   for i = section_start, #raw_out do
     local byte = raw_out:byte(i)
