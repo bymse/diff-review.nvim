@@ -6,6 +6,11 @@ local function assert_parse_fails(raw_out)
   assert(not success, 'expected malformed diff output to raise an error')
 end
 
+local function assert_ls_files_parse_fails(raw_out)
+  local success = pcall(parsers.parse_ls_files_output, raw_out)
+  assert(not success, 'expected malformed ls-files output to raise an error')
+end
+
 M.parse_diff_output_should_return_empty_list_for_empty_output = function()
   local diffs = parsers.parse_diff_output('')
   assert(#diffs == 0, 'expected no diffs')
@@ -102,5 +107,31 @@ M.parse_diff_output_should_error_for_malformed_object_id = function()
   assert_parse_fails(':100644 100644 invalid 1234567 M\0one.lua\0')
 end
 
+M.parse_ls_files_output_should_return_empty_list_for_empty_output = function()
+  local paths = parsers.parse_ls_files_output('')
+  assert(#paths == 0, 'expected no paths')
+end
+
+M.parse_ls_files_output_should_parse_single_path = function()
+  local paths = parsers.parse_ls_files_output('lua/diffreview/diffs/parsers.lua\0')
+  assert(#paths == 1, 'expected one path')
+  assert(paths[1] == 'lua/diffreview/diffs/parsers.lua', 'expected parsed path')
+end
+
+M.parse_ls_files_output_should_parse_multiple_paths = function()
+  local paths = parsers.parse_ls_files_output('one.lua\0directory/two.lua\0path with spaces\nthree.lua\0')
+  assert(#paths == 3, 'expected three paths')
+  assert(paths[1] == 'one.lua', 'expected first path')
+  assert(paths[2] == 'directory/two.lua', 'expected second path')
+  assert(paths[3] == 'path with spaces\nthree.lua', 'expected third path to preserve whitespace')
+end
+
+M.parse_ls_files_output_should_error_when_output_does_not_end_with_nul = function()
+  assert_ls_files_parse_fails('one.lua')
+end
+
+M.parse_ls_files_output_should_error_when_output_contains_empty_path = function()
+  assert_ls_files_parse_fails('one.lua\0\0')
+end
 
 return M

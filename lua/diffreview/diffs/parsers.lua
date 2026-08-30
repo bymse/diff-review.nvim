@@ -1,3 +1,5 @@
+require('diffreview.diffs.types')
+
 local file_mode = require('diffreview.diffs.file_mode')
 local diff_status = require('diffreview.diffs.status')
 local M = {}
@@ -152,6 +154,33 @@ function M.parse_diff_output(raw_out)
   end
 
   return diffs
+end
+
+---@param raw_out string
+---@return string[]
+function M.parse_ls_files_output(raw_out)
+  if raw_out == '' then
+    return {}
+  end
+
+  if raw_out:byte(#raw_out) ~= 0 then
+    error('git ls-files output expected to end with NUL')
+  end
+
+  local paths = {}
+  local path_start = 1
+  for i = 1, #raw_out do
+    if raw_out:byte(i) == 0 then
+      if i == path_start then
+        error('git ls-files output contains an empty path')
+      end
+
+      table.insert(paths, raw_out:sub(path_start, i - 1))
+      path_start = i + 1
+    end
+  end
+
+  return paths
 end
 
 return M
