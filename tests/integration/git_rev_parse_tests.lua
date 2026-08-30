@@ -9,7 +9,7 @@ local function resolve(repo, expression)
   local received_result
   local received_oid
 
-  local job = repo.rev_parse(expression, function(result, oid)
+  local job = repo:rev_parse(expression, function(result, oid)
     received_result = result
     received_oid = oid
   end)
@@ -29,7 +29,7 @@ M.rev_parse_should_return_error_when_repository_has_no_commits = function()
     local received_result
     local received_oid
 
-    local job = repo.rev_parse('HEAD', function(result, oid)
+    local job = repo:rev_parse('HEAD', function(result, oid)
       received_result = result
       received_oid = oid
     end)
