@@ -24,11 +24,9 @@ lint:
     APPIMAGE_EXTRACT_AND_RUN=1 "$appimage" --headless --clean --noplugin -n -i NONE -u NONE -l scripts/lint.lua
 
 format:
-    just --fmt
     stylua lua plugin scripts tests
 
 format-check:
-    just --fmt --check
     stylua --check lua plugin scripts tests
 
 [private]
