@@ -15,8 +15,6 @@
 ---@class GitJob
 ---@field wait fun(self: GitJob)
 
----@class GitRepo
----@field rev_parse fun(expression: string, receive_result: fun(result: GitResult, oid: string|nil)): GitJob
 local M = {}
 
 return M
