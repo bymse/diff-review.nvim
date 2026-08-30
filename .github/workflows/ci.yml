@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Just
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl --fail --location https://github.com/casey/just/releases/download/1.58.0/just-1.58.0-x86_64-unknown-linux-musl.tar.gz \
+            | tar -xz -C "$HOME/.local/bin" just
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install Lua tools
+        run: |
+          curl --fail --location --output /tmp/stylua.zip \
+            https://github.com/JohnnyMorganz/StyLua/releases/download/v2.5.2/stylua-linux-x86_64.zip
+          unzip -q /tmp/stylua.zip -d "$HOME/.local/bin"
+          mkdir -p /tmp/lua-language-server
+          curl --fail --location https://github.com/LuaLS/lua-language-server/releases/download/3.19.1/lua-language-server-3.19.1-linux-x64.tar.gz \
+            | tar -xz -C /tmp/lua-language-server
+          echo "/tmp/lua-language-server/bin" >> "$GITHUB_PATH"
+
+      - run: just bootstrap
+      - run: just lint
+      - run: just format-check
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Just
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl --fail --location https://github.com/casey/just/releases/download/1.58.0/just-1.58.0-x86_64-unknown-linux-musl.tar.gz \
+            | tar -xz -C "$HOME/.local/bin" just
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: just bootstrap
+      - run: just test

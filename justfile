@@ -1,5 +1,5 @@
 default:
-  just --list
+    just --list
 
 bootstrap:
     #!/usr/bin/env sh
@@ -7,6 +7,29 @@ bootstrap:
     mkdir -p .artifacts
     curl --fail --location --output .artifacts/nvim-linux-x86_64.appimage https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-linux-x86_64.appimage
     chmod +x .artifacts/nvim-linux-x86_64.appimage
+
+lint:
+    #!/usr/bin/env sh
+    set -eu
+    appimage=.artifacts/nvim-linux-x86_64.appimage
+    if [ ! -f "$appimage" ]; then
+      printf '%s\n' "Neovim AppImage is missing: run 'just bootstrap'" >&2
+      exit 1
+    fi
+    if ! command -v lua-language-server >/dev/null 2>&1; then
+      printf '%s\n' "lua-language-server 3.18.2 or newer must be available on PATH" >&2
+      exit 1
+    fi
+    chmod +x "$appimage"
+    APPIMAGE_EXTRACT_AND_RUN=1 "$appimage" --headless --clean --noplugin -n -i NONE -u NONE -l scripts/lint.lua
+
+format:
+    just --fmt
+    stylua lua plugin scripts tests
+
+format-check:
+    just --fmt --check
+    stylua --check lua plugin scripts tests
 
 [private]
 run-test category test_name="":
