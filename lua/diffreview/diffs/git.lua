@@ -1,7 +1,21 @@
-require('diffreview.diffs.types')
-
 local async = require('diffreview.async')
 local parsers = require('diffreview.diffs.parsers')
+
+---@class GitResult
+---@field ok boolean
+---@field error string|nil
+
+---@class GitRemote
+---@field name string
+---@field url string
+
+---@class GitRepoMeta
+---@field root string|nil
+---@field remotes GitRemote[]
+---@field branch string|nil
+---@field upstream_branch string|nil
+---@field default_branch string|nil
+
 local M = {}
 
 ---@class GitRepo
@@ -17,7 +31,7 @@ GitRepo.__index = GitRepo
 local function run_parsed(cmd, cwd, parse_output, text)
   local started, result = pcall(async.system, cmd, { cwd = cwd, text = text })
   if not started then
-    return { ok = false, error = tostring(result) }, nil
+    return { ok = false, error = tostring(result) }
   end
 
   if result.code ~= 0 then
@@ -31,6 +45,18 @@ local function run_parsed(cmd, cwd, parse_output, text)
   else
     return { ok = false, error = tostring(output) }
   end
+end
+
+---@param cmd string[]
+---@param cwd string|nil
+---@return string|nil
+local function run_optional_trimmed(cmd, cwd)
+  local result, output = run_parsed(cmd, cwd, vim.trim, true)
+  if not result.ok then
+    return nil
+  end
+
+  return output
 end
 
 ---@param expression string
@@ -74,6 +100,36 @@ end
 function GitRepo:ls_files()
   local cmd = { 'git', 'ls-files', '--others', '--exclude-standard', '-z' }
   return run_parsed(cmd, self.dir, parsers.parse_ls_files_output, false)
+end
+
+---@return GitResult, GitRepoMeta|nil
+function GitRepo:repo_meta()
+  local root_result, root = run_parsed({ 'git', 'rev-parse', '--show-toplevel' }, self.dir, vim.trim, true)
+  if not root_result.ok then
+    return root_result, nil
+  end
+
+  local remotes_result, remotes = run_parsed({ 'git', 'remote', '-v' }, self.dir, parsers.parse_remote_output, true)
+  if not remotes_result.ok then
+    return remotes_result, nil
+  end
+
+  ---@type GitRepoMeta
+  local meta = {
+    root = root,
+    remotes = remotes,
+    branch = run_optional_trimmed({ 'git', 'symbolic-ref', '--quiet', '--short', 'HEAD' }, self.dir),
+    upstream_branch = run_optional_trimmed(
+      { 'git', 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}' },
+      self.dir
+    ),
+    default_branch = run_optional_trimmed(
+      { 'git', 'symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD' },
+      self.dir
+    ),
+  }
+
+  return { ok = true }, meta
 end
 
 ---@param dir string|nil

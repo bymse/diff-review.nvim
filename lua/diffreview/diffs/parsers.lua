@@ -1,7 +1,16 @@
-require('diffreview.diffs.types')
-
 local file_mode = require('diffreview.diffs.file_mode')
 local diff_status = require('diffreview.diffs.status')
+
+---@class GitDiff
+---@field old_oid string
+---@field new_oid string
+---@field old_mode string
+---@field new_mode string
+---@field status string
+---@field similarity_score string|nil
+---@field current_path string
+---@field old_path string|nil
+
 local M = {}
 local colon_byte = string.byte(':')
 
@@ -182,6 +191,27 @@ function M.parse_ls_files_output(raw_out)
   end
 
   return paths
+end
+
+---@param raw_out string
+---@return GitRemote[]
+function M.parse_remote_output(raw_out)
+  local remotes = {}
+  local seen = {}
+
+  for line in raw_out:gmatch('[^\n]+') do
+    local name, url = line:match('^(%S+)%s+(%S+)%s+%([%w]+%)$')
+    if name == nil or url == nil then
+      error('invalid git remote output: ' .. line)
+    end
+
+    if not seen[name] then
+      seen[name] = true
+      table.insert(remotes, { name = name, url = url })
+    end
+  end
+
+  return remotes
 end
 
 return M

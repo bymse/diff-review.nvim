@@ -139,4 +139,59 @@ M.parse_ls_files_output_should_error_when_output_contains_empty_path = function(
   assert_ls_files_parse_fails('one.lua\0\0')
 end
 
+local function assert_remote_parse_fails(raw_out)
+  local success = pcall(parsers.parse_remote_output, raw_out)
+  assert(not success, 'expected malformed remote output to raise an error')
+end
+
+M.parse_remote_output_should_return_empty_list_for_empty_output = function()
+  local remotes = parsers.parse_remote_output('')
+  assert(#remotes == 0, 'expected no remotes')
+end
+
+M.parse_remote_output_should_parse_single_remote = function()
+  local remotes = parsers.parse_remote_output(
+    'origin\thttps://example.com/origin/repo.git (fetch)\n' .. 'origin\thttps://example.com/origin/repo.git (push)\n'
+  )
+  assert(#remotes == 1, 'expected fetch and push lines to collapse into one remote')
+  assert(remotes[1].name == 'origin', 'expected remote name origin')
+  assert(remotes[1].url == 'https://example.com/origin/repo.git', 'expected remote URL')
+end
+
+M.parse_remote_output_should_parse_multiple_remotes = function()
+  local remotes = parsers.parse_remote_output(
+    'fork\thttps://example.com/user/repo.git (fetch)\n'
+      .. 'fork\thttps://example.com/user/repo.git (push)\n'
+      .. 'origin\thttps://example.com/origin/repo.git (fetch)\n'
+      .. 'origin\thttps://example.com/origin/repo.git (push)\n'
+      .. 'upstream\thttps://example.com/team/repo.git (fetch)\n'
+      .. 'upstream\thttps://example.com/team/repo.git (push)\n'
+  )
+  assert(#remotes == 3, 'expected three remotes')
+
+  local urls = {}
+  for _, remote in ipairs(remotes) do
+    urls[remote.name] = remote.url
+  end
+  assert(urls['fork'] == 'https://example.com/user/repo.git', 'expected fork remote URL')
+  assert(urls['origin'] == 'https://example.com/origin/repo.git', 'expected origin remote URL')
+  assert(urls['upstream'] == 'https://example.com/team/repo.git', 'expected upstream remote URL')
+end
+
+M.parse_remote_output_should_keep_fetch_url_when_push_url_differs = function()
+  local remotes = parsers.parse_remote_output(
+    'origin\thttps://example.com/origin/repo.git (fetch)\n' .. 'origin\tgit@example.com:origin/repo.git (push)\n'
+  )
+  assert(#remotes == 1, 'expected one remote')
+  assert(remotes[1].url == 'https://example.com/origin/repo.git', 'expected fetch URL to win')
+end
+
+M.parse_remote_output_should_error_for_missing_url_type_suffix = function()
+  assert_remote_parse_fails('origin\thttps://example.com/origin/repo.git\n')
+end
+
+M.parse_remote_output_should_error_for_missing_url = function()
+  assert_remote_parse_fails('origin (fetch)\n')
+end
+
 return M
