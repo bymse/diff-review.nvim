@@ -1,21 +1,21 @@
 local M = {}
 
----@param args string[]
----@param env table<string, string>|nil
----@return string
-local function run_git(cwd, args, env)
-  local command = { 'git' }
-  vim.list_extend(command, args)
-
-  local result = vim.system(command, { cwd = cwd, text = true, env = env }):wait()
-  assert(result.code == 0, 'git command failed: ' .. result.stderr)
-  return vim.trim(result.stdout)
-end
-
 ---@class TestGitRepo
 ---@field cwd string
 local TestGitRepo = {}
 TestGitRepo.__index = TestGitRepo
+
+---@param args string[]
+---@param env table<string, string>|nil
+---@return string
+function TestGitRepo:run_git(args, env)
+  local command = { 'git' }
+  vim.list_extend(command, args)
+
+  local result = vim.system(command, { cwd = self.cwd, text = true, env = env }):wait()
+  assert(result.code == 0, 'git command failed: ' .. result.stderr)
+  return vim.trim(result.stdout)
+end
 
 ---@param path string
 ---@param lines string[]
@@ -27,13 +27,13 @@ end
 ---@param path string
 ---@return nil
 function TestGitRepo:add(path)
-  run_git(self.cwd, { 'add', '--', path })
+  self:run_git({ 'add', '--', path })
 end
 
 ---@param message string
 ---@return nil
 function TestGitRepo:commit(message)
-  run_git(self.cwd, {
+  self:run_git({
     '-c',
     'user.name=Diff Review Tests',
     '-c',
@@ -51,13 +51,13 @@ end
 
 ---@return string
 function TestGitRepo:current_sha()
-  return run_git(self.cwd, { 'rev-parse', 'HEAD' })
+  return self:run_git({ 'rev-parse', 'HEAD' })
 end
 
 ---@param name string
 ---@return nil
 function TestGitRepo:branch(name)
-  run_git(self.cwd, { 'branch', name })
+  self:run_git({ 'branch', name })
 end
 
 ---@param run fun(repo: TestGitRepo)
