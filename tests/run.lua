@@ -106,9 +106,41 @@ if requested_test_name then
   test_names = { requested_test_name }
 end
 local failures = {}
+local TEST_TIMEOUT_MS = 10000
+
+---@param test fun()
+---@return boolean passed
+---@return string|nil traceback
+local function run_test(test)
+  ---@type boolean, string|nil
+  local passed, traceback = false, nil
+
+  local co = coroutine.create(function()
+    local ok, err = xpcall(test, debug.traceback)
+    passed = ok
+    traceback = err
+  end)
+
+  local resumed, resume_error = coroutine.resume(co)
+  if not resumed then
+    return false, resume_error
+  end
+
+  if coroutine.status(co) ~= 'dead' then
+    local completed = vim.wait(TEST_TIMEOUT_MS, function()
+      return coroutine.status(co) == 'dead'
+    end, 10)
+
+    if not completed then
+      return false, 'test did not complete within ' .. TEST_TIMEOUT_MS .. ' ms'
+    end
+  end
+
+  return passed, traceback
+end
 
 for _, test_name in ipairs(test_names) do
-  local passed, traceback = xpcall(tests[test_name], debug.traceback)
+  local passed, traceback = run_test(tests[test_name])
   if passed then
     print(string.format('PASS %s:%s', category, test_name))
   else

@@ -7,22 +7,11 @@ local M = {}
 ---@param to string|nil
 ---@return GitDiff[]
 local function diff(repo, from, to)
-  ---@type GitResult|nil
-  local received_result
-  ---@type GitDiff[]|nil
-  local received_diffs
+  local result, diffs = repo:diff(from, to)
 
-  local job = repo:diff(from, to, function(result, diffs)
-    received_result = result
-    received_diffs = diffs
-  end)
-
-  job:wait()
-
-  assert(received_result ~= nil, 'expected diff result')
-  assert(received_result.ok, 'expected diff to succeed: ' .. (received_result.error or 'unknown error'))
-  assert(received_diffs ~= nil, 'expected parsed diffs')
-  return received_diffs
+  assert(result.ok, 'expected diff to succeed: ' .. (result.error or 'unknown error'))
+  assert(diffs ~= nil, 'expected parsed diffs')
+  return diffs
 end
 
 ---@param diffs GitDiff[]
@@ -67,12 +56,12 @@ M.diff_should_error_when_oid_has_invalid_form = function()
 
   for _, oid in ipairs(invalid_oids) do
     local from_success = pcall(function()
-      repo:diff(oid, nil, function() end)
+      repo:diff(oid, nil)
     end)
     assert(not from_success, 'expected invalid from OID to raise an error: ' .. oid)
 
     local to_success = pcall(function()
-      repo:diff(nil, oid, function() end)
+      repo:diff(nil, oid)
     end)
     assert(not to_success, 'expected invalid to OID to raise an error: ' .. oid)
   end

@@ -5,41 +5,21 @@ local M = {}
 ---@param repo GitRepo
 ---@return string
 local function resolve(repo, expression)
-  ---@type GitResult|nil
-  local received_result
-  local received_oid
+  local result, oid = repo:rev_parse(expression)
 
-  local job = repo:rev_parse(expression, function(result, oid)
-    received_result = result
-    received_oid = oid
-  end)
-
-  job:wait()
-
-  assert(received_result ~= nil, 'expected rev-parse result')
-  assert(received_result.ok, 'expected rev-parse to succeed: ' .. (received_result.error or 'unknown error'))
-  assert(received_oid ~= nil, 'expected a commit object ID')
-  return received_oid
+  assert(result.ok, 'expected rev-parse to succeed: ' .. (result.error or 'unknown error'))
+  assert(oid ~= nil, 'expected a commit object ID')
+  return oid
 end
 
 M.rev_parse_should_return_error_when_repository_has_no_commits = function()
   git_repo.with_repo(function(test_repo)
     local repo = git.get_repo(test_repo.cwd)
-    ---@type GitResult|nil
-    local received_result
-    local received_oid
+    local result, oid = repo:rev_parse('HEAD')
 
-    local job = repo:rev_parse('HEAD', function(result, oid)
-      received_result = result
-      received_oid = oid
-    end)
-
-    job:wait()
-
-    assert(received_result ~= nil, 'expected rev-parse result')
-    assert(not received_result.ok, 'expected rev-parse to fail')
-    assert(received_result.error ~= nil, 'expected rev-parse error details')
-    assert(received_oid == nil, 'expected no object ID')
+    assert(not result.ok, 'expected rev-parse to fail')
+    assert(result.error ~= nil, 'expected rev-parse error details')
+    assert(oid == nil, 'expected no object ID')
   end)
 end
 

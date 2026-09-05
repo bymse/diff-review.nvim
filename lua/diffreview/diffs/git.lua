@@ -1,5 +1,6 @@
 require('diffreview.diffs.types')
 
+local async = require('diffreview.async')
 local parsers = require('diffreview.diffs.parsers')
 local M = {}
 
@@ -11,36 +12,30 @@ GitRepo.__index = GitRepo
 ---@param cmd string[]
 ---@param cwd string|nil
 ---@param parse_output fun(raw_out: string): any
----@param receive_result fun(result: GitResult, output: any|nil)
----@return GitJob
-local function run_parsed(cmd, cwd, parse_output, receive_result)
-  ---@param result vim.SystemCompleted
-  local on_exit = function(result)
-    if result.code ~= 0 then
-      receive_result({ ok = false, error = result.stderr })
-      return
-    end
-
-    local success, output = pcall(parse_output, result.stdout)
-    if success then
-      receive_result({ ok = true }, output)
-    else
-      receive_result({ ok = false, error = tostring(output) })
-    end
+---@param text boolean
+---@return GitResult, any|nil
+local function run_parsed(cmd, cwd, parse_output, text)
+  local started, result = pcall(async.system, cmd, { cwd = cwd, text = text })
+  if not started then
+    return { ok = false, error = tostring(result) }, nil
   end
 
-  local process = vim.system(cmd, { cwd = cwd }, on_exit)
-  return {
-    wait = function()
-      process:wait()
-    end,
-  }
+  if result.code ~= 0 then
+    return { ok = false, error = result.stderr }
+  end
+
+  local success, output = pcall(parse_output, result.stdout)
+
+  if success then
+    return { ok = true }, output
+  else
+    return { ok = false, error = tostring(output) }
+  end
 end
 
 ---@param expression string
----@param receive_result fun(result: GitResult, oid: string|nil)
----@return GitJob
-function GitRepo:rev_parse(expression, receive_result)
+---@return GitResult, string|nil
+function GitRepo:rev_parse(expression)
   local cmd = {
     'git',
     'rev-parse',
@@ -49,28 +44,13 @@ function GitRepo:rev_parse(expression, receive_result)
     expression .. '^{commit}',
   }
 
-  ---@param result vim.SystemCompleted
-  local on_exit = function(result)
-    if result.code == 0 then
-      receive_result({ ok = true }, vim.trim(result.stdout))
-    else
-      receive_result({ ok = false, error = result.stderr })
-    end
-  end
-
-  local process = vim.system(cmd, { text = true, cwd = self.dir }, on_exit)
-  return {
-    wait = function()
-      process:wait()
-    end,
-  }
+  return run_parsed(cmd, self.dir, vim.trim, true)
 end
 
 ---@param from_commit_oid string|nil
 ---@param to_commit_oid string|nil
----@param receive_result fun(result: GitResult, diffs: GitDiff[]|nil)
----@return GitJob
-function GitRepo:diff(from_commit_oid, to_commit_oid, receive_result)
+---@return GitResult, GitDiff[]|nil
+function GitRepo:diff(from_commit_oid, to_commit_oid)
   if from_commit_oid ~= nil and not from_commit_oid:match('^%x+$') then
     error('invalid from commit object ID: ' .. from_commit_oid)
   end
@@ -87,14 +67,13 @@ function GitRepo:diff(from_commit_oid, to_commit_oid, receive_result)
   end
   table.insert(cmd, '--')
 
-  return run_parsed(cmd, self.dir, parsers.parse_diff_output, receive_result)
+  return run_parsed(cmd, self.dir, parsers.parse_diff_output, false)
 end
 
----@param receive_result fun(result: GitResult, paths: string[]|nil)
----@return GitJob
-function GitRepo:ls_files(receive_result)
+---@return GitResult, string[]|nil
+function GitRepo:ls_files()
   local cmd = { 'git', 'ls-files', '--others', '--exclude-standard', '-z' }
-  return run_parsed(cmd, self.dir, parsers.parse_ls_files_output, receive_result)
+  return run_parsed(cmd, self.dir, parsers.parse_ls_files_output, false)
 end
 
 ---@param dir string|nil

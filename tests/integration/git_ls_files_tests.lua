@@ -5,22 +5,11 @@ local M = {}
 ---@param repo GitRepo
 ---@return string[]
 local function ls_files(repo)
-  ---@type GitResult|nil
-  local received_result
-  ---@type string[]|nil
-  local received_paths
+  local result, paths = repo:ls_files()
 
-  local job = repo:ls_files(function(result, paths)
-    received_result = result
-    received_paths = paths
-  end)
-
-  job:wait()
-
-  assert(received_result ~= nil, 'expected ls-files result')
-  assert(received_result.ok, 'expected ls-files to succeed: ' .. (received_result.error or 'unknown error'))
-  assert(received_paths ~= nil, 'expected parsed paths')
-  return received_paths
+  assert(result.ok, 'expected ls-files to succeed: ' .. (result.error or 'unknown error'))
+  assert(paths ~= nil, 'expected parsed paths')
+  return paths
 end
 
 M.ls_files_should_return_empty_array_when_repository_is_empty = function()
